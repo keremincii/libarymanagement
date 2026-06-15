@@ -34,6 +34,7 @@ public class BorrowService {
     private final BorrowTransactionRepository borrowTransactionRepository;
     private final BookService bookService;
     private final UserService userService;
+    private final ReservationService reservationService;
 
     @Value("${app.borrow.max-days:14}")
     private int maxBorrowDays;
@@ -126,6 +127,9 @@ public class BorrowService {
         // Increase available copies
         Book book = transaction.getBook();
         book.setAvailableCopies(book.getAvailableCopies() + 1);
+
+        // Check and fulfill pending reservations for this book
+        reservationService.fulfillNextReservation(book.getId());
 
         log.info("User '{}' returned book '{}' (ISBN: {}). Overdue: {}",
                 username, book.getTitle(), book.getIsbn(), wasOverdue);
