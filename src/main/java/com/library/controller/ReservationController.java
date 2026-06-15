@@ -58,12 +58,12 @@ public class ReservationController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/book/{bookId}")
+    @GetMapping("/book/{isbn}")
     @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     @Operation(summary = "Get reservations for a book",
                description = "Returns pending reservations for a specific book (ADMIN/LIBRARIAN only)")
     public ResponseEntity<List<ReservationResponse>> getBookReservations(
-            @PathVariable Long bookId) {
-        return ResponseEntity.ok(reservationService.getBookReservations(bookId));
+            @PathVariable String isbn) {
+        return ResponseEntity.ok(reservationService.getBookReservations(isbn));
     }
 }

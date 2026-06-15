@@ -62,8 +62,8 @@ public class BorrowService {
         }
 
         // Validate: user hasn't already borrowed this book
-        if (borrowTransactionRepository.existsByUserIdAndBookIdAndStatus(
-                user.getId(), book.getId(), BorrowStatus.BORROWED)) {
+        if (borrowTransactionRepository.existsByUserIdAndBookIsbnAndStatus(
+                user.getId(), book.getIsbn(), BorrowStatus.BORROWED)) {
             throw new BadRequestException("You already have an active borrow for this book.");
         }
 
@@ -129,7 +129,7 @@ public class BorrowService {
         book.setAvailableCopies(book.getAvailableCopies() + 1);
 
         // Check and fulfill pending reservations for this book
-        reservationService.fulfillNextReservation(book.getId());
+        reservationService.fulfillNextReservation(book.getIsbn());
 
         log.info("User '{}' returned book '{}' (ISBN: {}). Overdue: {}",
                 username, book.getTitle(), book.getIsbn(), wasOverdue);

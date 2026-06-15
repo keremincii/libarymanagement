@@ -37,7 +37,7 @@ public interface BorrowTransactionRepository extends JpaRepository<BorrowTransac
     /**
      * Check if a user has already borrowed a specific book (and hasn't returned it).
      */
-    boolean existsByUserIdAndBookIdAndStatus(Long userId, Long bookId, BorrowStatus status);
+    boolean existsByUserIdAndBookIsbnAndStatus(Long userId, String isbn, BorrowStatus status);
 
     /**
      * Find all overdue transactions (due date passed but not returned).

@@ -25,17 +25,17 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     /**
      * Find pending reservations for a specific book (ordered by date — first come first served).
      */
-    List<Reservation> findByBookIdAndStatusOrderByReservationDateAsc(Long bookId, ReservationStatus status);
+    List<Reservation> findByBookIsbnAndStatusOrderByReservationDateAsc(String isbn, ReservationStatus status);
 
     /**
      * Check if user already has a pending reservation for this book.
      */
-    boolean existsByUserIdAndBookIdAndStatus(Long userId, Long bookId, ReservationStatus status);
+    boolean existsByUserIdAndBookIsbnAndStatus(Long userId, String isbn, ReservationStatus status);
 
     /**
      * Find the oldest pending reservation for a book (next in queue).
      */
-    Optional<Reservation> findFirstByBookIdAndStatusOrderByReservationDateAsc(Long bookId, ReservationStatus status);
+    Optional<Reservation> findFirstByBookIsbnAndStatusOrderByReservationDateAsc(String isbn, ReservationStatus status);
 
     /**
      * Find expired pending reservations (older than expiry threshold).
@@ -46,5 +46,5 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     /**
      * Count pending reservations for a book.
      */
-    long countByBookIdAndStatus(Long bookId, ReservationStatus status);
+    long countByBookIsbnAndStatus(String isbn, ReservationStatus status);
 }

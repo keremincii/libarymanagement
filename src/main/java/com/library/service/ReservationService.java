@@ -56,8 +56,8 @@ public class ReservationService {
         }
 
         // Validate: user doesn't already have a pending reservation for this book
-        if (reservationRepository.existsByUserIdAndBookIdAndStatus(
-                user.getId(), book.getId(), ReservationStatus.PENDING)) {
+        if (reservationRepository.existsByUserIdAndBookIsbnAndStatus(
+                user.getId(), book.getIsbn(), ReservationStatus.PENDING)) {
             throw new BadRequestException("You already have a pending reservation for this book.");
         }
 
@@ -72,7 +72,7 @@ public class ReservationService {
         reservationRepository.save(reservation);
 
         // Calculate queue position
-        long queuePosition = getQueuePosition(book.getId(), reservation.getReservationId());
+        long queuePosition = getQueuePosition(book.getIsbn(), reservation.getReservationId());
 
         log.info("User '{}' created reservation for book '{}' (ISBN: {}). Queue position: {}",
                 username, book.getTitle(), book.getIsbn(), queuePosition);
@@ -116,7 +116,7 @@ public class ReservationService {
         User user = userService.findByUsername(username);
         return reservationRepository.findByUserIdOrderByReservationDateDesc(user.getId())
                 .stream()
-                .map(r -> mapToResponse(r, getQueuePosition(r.getBook().getId(), r.getReservationId())))
+                .map(r -> mapToResponse(r, getQueuePosition(r.getBook().getIsbn(), r.getReservationId())))
                 .collect(Collectors.toList());
     }
 
@@ -124,11 +124,11 @@ public class ReservationService {
      * Get pending reservations for a specific book (LIBRARIAN/ADMIN).
      */
     @Transactional(readOnly = true)
-    public List<ReservationResponse> getBookReservations(Long bookId) {
+    public List<ReservationResponse> getBookReservations(String isbn) {
         return reservationRepository
-                .findByBookIdAndStatusOrderByReservationDateAsc(bookId, ReservationStatus.PENDING)
+                .findByBookIsbnAndStatusOrderByReservationDateAsc(isbn, ReservationStatus.PENDING)
                 .stream()
-                .map(r -> mapToResponse(r, getQueuePosition(bookId, r.getReservationId())))
+                .map(r -> mapToResponse(r, getQueuePosition(isbn, r.getReservationId())))
                 .collect(Collectors.toList());
     }
 
@@ -137,17 +137,17 @@ public class ReservationService {
      * Updates reservation status to FULFILLED.
      */
     @Transactional
-    public void fulfillNextReservation(Long bookId) {
+    public void fulfillNextReservation(String isbn) {
         Optional<Reservation> nextReservation = reservationRepository
-                .findFirstByBookIdAndStatusOrderByReservationDateAsc(bookId, ReservationStatus.PENDING);
+                .findFirstByBookIsbnAndStatusOrderByReservationDateAsc(isbn, ReservationStatus.PENDING);
 
         nextReservation.ifPresent(reservation -> {
             reservation.setStatus(ReservationStatus.FULFILLED);
             reservationRepository.save(reservation);
-            log.info("Reservation {} fulfilled for user '{}', book ID: {}",
+            log.info("Reservation {} fulfilled for user '{}', book ISBN: {}",
                     reservation.getReservationId(),
                     reservation.getUser().getUsername(),
-                    bookId);
+                    isbn);
         });
     }
 
@@ -178,9 +178,9 @@ public class ReservationService {
     /**
      * Calculate queue position for a reservation.
      */
-    private long getQueuePosition(Long bookId, Long reservationId) {
+    private long getQueuePosition(String isbn, Long reservationId) {
         List<Reservation> pendingReservations = reservationRepository
-                .findByBookIdAndStatusOrderByReservationDateAsc(bookId, ReservationStatus.PENDING);
+                .findByBookIsbnAndStatusOrderByReservationDateAsc(isbn, ReservationStatus.PENDING);
 
         for (int i = 0; i < pendingReservations.size(); i++) {
             if (pendingReservations.get(i).getReservationId().equals(reservationId)) {

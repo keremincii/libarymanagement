@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "borrow_transactions", indexes = {
     @Index(name = "idx_borrow_user", columnList = "user_id"),
-    @Index(name = "idx_borrow_book", columnList = "book_id"),
+    @Index(name = "idx_borrow_isbn", columnList = "isbn"),
     @Index(name = "idx_borrow_status", columnList = "status")
 })
 @Getter
@@ -32,7 +32,7 @@ public class BorrowTransaction {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_id", nullable = false)
+    @JoinColumn(name = "isbn", referencedColumnName = "isbn", nullable = false)
     private Book book;
 
     @Column(name = "borrow_date", nullable = false)
